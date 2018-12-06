@@ -6,18 +6,36 @@ let todos = [
     {
         id: 1,
         title: "This is my todo",
-        body: "sample content in id 1"
+        body: "sample content in id 1",
+        userId: 1
     },
     {
         id: 2,
         title: "This is my second todo",
-        body: "sample content in id 2"
+        body: "sample content in id 2",
+        userId: 1
+
     },
     {
         id: 3,
         title: "This is my third todo",
-        body: "sample content in id 3"
+        body: "sample content in id 3",
+        userId: 2
+
     }
+]
+
+
+let users = [
+
+    {
+        id: 1,
+        name: "sai"
+    },
+    {
+        id: 2,
+        name: "gowtham"
+    },
 ]
 
 
@@ -28,19 +46,17 @@ type Todo{
     id: ID!
     title: String!
     body: String!
+    user:User!
 }
 
-
+type User{
+    id:ID!
+    name:String!
+    todos: [Todo!]!
+}
 
 type Query{
-   getAlltodos : [Todo!]!
-}
-
-
-type Mutation{
-    addTodo(title:String!,body:String!):Todo!,
-    updateTodo(id:ID!,title:String!,body:String!):Todo!
-    deleteTodo(id:ID!):Todo!
+     user(id:ID!): User!
 }
 
 `
@@ -49,47 +65,22 @@ type Mutation{
 
 const resolvers = {
     Query: {
-        getAlltodos(root, args, ctx, info) {
+        user(parent, args, ctx, info) {
 
-            return todos
+            if (!args.id) {
+                throw new Error('id is required')
+            }
+
+            return users.find(user => user.id === +args.id)
+
         }
 
     },
-    Mutation: {
-        addTodo(root, args, ctx, info) {
+    User: {
+        todos(parent, args, ctx, info) {
+            console.log(parent)
 
-            if (args) {
-                todos.push({
-                    id: Math.random(),
-                    title: args.title,
-                    body: args.body
-                })
-            } else {
-                throw new Error()
-            }
-
-            return todos[todos.length - 1];
-
-        },
-        updateTodo(root, args, ctx, info) {
-            const index = todos.findIndex(e => e.id === +args.id)
-
-            let todo = todos[index];
-
-            todo.title = args.title
-            todo.body = args.body
-
-            return todos[index]
-        },
-        deleteTodo(root, args, ctx, info) {
-            const index = todos.findIndex(e => e.id === +args.id)
-
-            let todo = todos[index];
-            const filter = todos.filter(e => e.id !== +args.id)
-
-            todos = filter
-
-            return todo
+            return todos.filter(todo => todo.userId === parent.id)
         }
     }
 
